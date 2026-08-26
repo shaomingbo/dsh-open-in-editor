@@ -1,6 +1,6 @@
 {
   "name": "dsh-open-in-editor",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Open DSH Web produced files in a configurable local macOS IDE.",
   "type": "module",
   "main": "lib/index.js",

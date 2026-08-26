@@ -6,6 +6,7 @@
 
 - 点击产物文件名：用设置中的默认 IDE 打开。
 - 点击文件旁的箭头：临时选择系统默认、Zed、Visual Studio Code 或 Xcode，不修改默认值。
+- 单轮产物超过 6 个时，点击 **另有 N 个** 即可展开全部文件，用完后可再次收起。
 - 在 **设置 → 打开方式** 中选择默认 IDE，并刷新本机应用探测结果。
 - 支持文件与目录；相对产物路径会先按会话工作区解析。
 
@@ -16,7 +17,7 @@
 运行固定 GitHub release 的安装器：
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2
 ```
 
 安装器会安全更新 `web` profile、启用 bundle，并执行 `pnpm install --ignore-scripts`。它会保留 package manifest 备份；如果依赖安装失败，会恢复原始 manifest。安装器绝不会自动重启 DSH。
@@ -26,8 +27,8 @@ npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1
 需要指定其他 profile 或本地源码时：
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --profile web
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --source link:/仓库的绝对路径/dsh-open-in-editor
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 --profile web
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 --source link:/仓库的绝对路径/dsh-open-in-editor
 ```
 
 自动化场景也可以通过 `DSH_OPEN_IN_EDITOR_SOURCE` 覆盖 source。
@@ -35,7 +36,7 @@ npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --source link:/仓库的�
 查询当前配置状态：
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 status
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 status
 ```
 
 手动修改 profile 仅作为兜底方案：在 `dependencies` 中加入固定 tag 的 source，把 `dsh-open-in-editor` 加入 `dsh.profile.bundles`，再在 profile 目录运行 `pnpm install --ignore-scripts`。
@@ -60,7 +61,7 @@ npm run check
 ## 卸载
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 uninstall
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 uninstall
 ```
 
 然后手动重启 DSH，并强制刷新 Web GUI。

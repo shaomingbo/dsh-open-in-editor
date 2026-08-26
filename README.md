@@ -6,6 +6,7 @@ Add a configurable local macOS IDE opener to DeepSeek Harness Web produced-file 
 
 - Click a produced filename to open it in the configured default IDE.
 - Click its arrow to choose System default, Zed, Visual Studio Code, or Xcode for one open without changing the default.
+- When a turn produces more than six paths, expand **+N more** to access every file and collapse it again when finished.
 - Choose the default under **Settings → Open in IDE** and refresh local application detection.
 - Open files or directories; relative produced paths are resolved against the session workspace first.
 
@@ -16,7 +17,7 @@ The first release supports macOS only. Ordinary inline file links keep DSH's nat
 Run the pinned GitHub release installer:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2
 ```
 
 The installer safely updates the `web` profile, enables the bundle, and runs `pnpm install --ignore-scripts`. It preserves a package-manifest backup and restores the original manifest if dependency installation fails. It never restarts DSH automatically.
@@ -26,8 +27,8 @@ After installation, restart DSH manually and hard-refresh the existing Web GUI.
 Use another profile or package source when needed:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --profile web
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --source link:/absolute/path/to/dsh-open-in-editor
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 --profile web
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 --source link:/absolute/path/to/dsh-open-in-editor
 ```
 
 `DSH_OPEN_IN_EDITOR_SOURCE` provides the same source override for automation.
@@ -35,7 +36,7 @@ npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --source link:/absolute/pa
 Check the configured state:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 status
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 status
 ```
 
 Manual profile editing remains a fallback: add the pinned source to `dependencies`, add `dsh-open-in-editor` to `dsh.profile.bundles`, then run `pnpm install --ignore-scripts` in the profile directory.
@@ -60,7 +61,7 @@ Tests cover application detection, path validation, safe argv construction, defa
 ## Uninstall
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 uninstall
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.2 uninstall
 ```
 
 Then restart DSH manually and hard-refresh the Web GUI.

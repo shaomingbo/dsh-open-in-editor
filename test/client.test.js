@@ -6,7 +6,7 @@ import vm from 'node:vm'
 
 const clientPath = fileURLToPath(new URL('../lib/client.js', import.meta.url))
 
-async function loadFactory() {
+async function loadFactory(reactOverride) {
   const source = await readFile(clientPath, 'utf8')
   let registration
   vm.runInNewContext(source, {
@@ -18,7 +18,7 @@ async function loadFactory() {
       },
     },
   })
-  const React = {
+  const React = reactOverride ?? {
     createElement() {},
     useCallback() {},
     useEffect() {},
@@ -120,6 +120,82 @@ test('declines the chain for remote browsers so the official row remains the fal
   }
   plugin.apply(ctx)
   assert.equal(tail.select({ turn: { data: new Map() }, seq: 1 }), null)
+})
+
+test('the more control expands hidden produced files into openable split buttons', async () => {
+  const state = []
+  let cursor = 0
+  const React = {
+    createElement(type, props, ...children) {
+      return { type, props: { ...(props ?? {}), children: children.flat(Infinity) } }
+    },
+    useCallback(callback) { return callback },
+    useEffect() {},
+    useRef(value) { return { current: value } },
+    useState(initial) {
+      const index = cursor
+      cursor += 1
+      if (!(index in state)) state[index] = initial
+      return [state[index], (next) => { state[index] = typeof next === 'function' ? next(state[index]) : next }]
+    },
+    useSyncExternalStore() {},
+  }
+  const { plugin } = await loadFactory(React)
+  let producedFilesRenderer
+  const calls = []
+  const ctx = {
+    connection: { isLoopback: true, rpc: { call: async (...args) => {
+      calls.push(args)
+      return { ok: true, value: { editors: [], supported: true } }
+    } } },
+    effect(callback) { callback() },
+    locale: { register: () => () => {}, bind: () => (key) => key },
+    settingsScope: { bind: () => ({ getSnapshot() {}, subscribe() {}, set() {} }) },
+    slots: {
+      inject(name, callback) { callback() },
+      register(options, component) {
+        if (options.name === 'conversation.chat.turnTail') producedFilesRenderer = component
+        return () => {}
+      },
+    },
+  }
+  plugin.apply(ctx)
+  const paths = Array.from({ length: 8 }, (_, index) => `/tmp/file-${index + 1}.md`)
+  const props = {
+    matched: paths,
+    sessionId: 'session',
+    useSessions: (select) => select({ byId: { session: { cwd: '/tmp' } } }),
+    inputActions: {},
+    connection: ctx.connection,
+    catalog: { load: async () => {} },
+    t: (key, values) => key === 'more' ? `more ${values.count}` : key,
+  }
+  const walk = (node) => {
+    if (node === null || node === undefined || typeof node !== 'object') return []
+    return [node, ...(node.props?.children ?? []).flatMap(walk)]
+  }
+  const render = () => {
+    cursor = 0
+    const element = producedFilesRenderer(props)
+    return element.type(element.props)
+  }
+
+  const collapsed = walk(render())
+  assert.equal(collapsed.filter((node) => node.props?.className === 'dsh-open-in-editor-split').length, 6)
+  const more = collapsed.find((node) => node.props?.className === 'dsh-open-in-editor-more')
+  assert.equal(more.type, 'button')
+  assert.equal(typeof more.props.onClick, 'function')
+
+  more.props.onClick()
+  const expanded = walk(render())
+  const splitButtons = expanded.filter((node) => node.props?.className === 'dsh-open-in-editor-split')
+  assert.equal(splitButtons.length, 8)
+  assert.equal(expanded.find((node) => node.props?.className === 'dsh-open-in-editor-more').props['aria-expanded'], true)
+
+  await splitButtons[6].props.children[0].props.onClick()
+  assert.equal(calls.at(-1)[0], '/open-in-editor')
+  assert.equal(calls.at(-1)[1], 'open')
+  assert.equal(JSON.stringify(calls.at(-1)[2]), JSON.stringify({ path: '/tmp/file-7.md' }))
 })
 
 test('produced-file controls use fixed-geometry SVG icons instead of font glyphs', async () => {
