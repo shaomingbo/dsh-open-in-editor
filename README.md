@@ -13,28 +13,32 @@ The first release supports macOS only. Ordinary inline file links keep DSH's nat
 
 ## Installation
 
-Add the GitHub repository and bundle to the DSH `web` profile:
-
-```json
-{
-  "dependencies": {
-    "dsh-open-in-editor": "github:shaomingbo/dsh-open-in-editor"
-  },
-  "dsh": {
-    "profile": {
-      "bundles": ["dsh-open-in-editor"]
-    }
-  }
-}
-```
-
-Then run in the profile directory:
+Run the pinned GitHub release installer:
 
 ```sh
-pnpm install --ignore-scripts
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0
 ```
 
-A new Host bundle requires a DSH restart, followed by refreshing the existing Web GUI. For local development, clone the repository and replace the GitHub dependency with `link:/absolute/path/to/dsh-open-in-editor`.
+The installer safely updates the `web` profile, enables the bundle, and runs `pnpm install --ignore-scripts`. It preserves a package-manifest backup and restores the original manifest if dependency installation fails. It never restarts DSH automatically.
+
+After installation, restart DSH manually and hard-refresh the existing Web GUI.
+
+Use another profile or package source when needed:
+
+```sh
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 --profile web
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 --source link:/absolute/path/to/dsh-open-in-editor
+```
+
+`DSH_OPEN_IN_EDITOR_SOURCE` provides the same source override for automation.
+
+Check the configured state:
+
+```sh
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 status
+```
+
+Manual profile editing remains a fallback: add the pinned source to `dependencies`, add `dsh-open-in-editor` to `dsh.profile.bundles`, then run `pnpm install --ignore-scripts` in the profile directory.
 
 ## Security
 
@@ -55,7 +59,11 @@ Tests cover application detection, path validation, safe argv construction, defa
 
 ## Uninstall
 
-Remove `dsh-open-in-editor` from both `dependencies` and `dsh.profile.bundles` in `~/.dsh/profiles/web/package.json`, run `pnpm install --ignore-scripts`, and restart DSH.
+```sh
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 uninstall
+```
+
+Then restart DSH manually and hard-refresh the Web GUI.
 
 ## License
 

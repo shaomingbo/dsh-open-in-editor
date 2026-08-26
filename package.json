@@ -1,6 +1,6 @@
 {
   "name": "dsh-open-in-editor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open DSH Web produced files in a configurable local macOS IDE.",
   "type": "module",
   "main": "lib/index.js",
@@ -10,18 +10,23 @@
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
+  "bin": {
+    "dsh-open-in-editor": "bin/dsh-open-in-editor.js"
+  },
   "files": [
+    "bin/dsh-open-in-editor.js",
     "cordis.patch.yml",
     "lib/editor-host.js",
     "lib/index.js",
     "lib/client.js",
+    "lib/installer.js",
     "README.md",
     "README.zh.md",
     "LICENSE"
   ],
   "scripts": {
     "test": "node --test",
-    "check": "node --check lib/*.js && node --test"
+    "check": "node --check lib/*.js bin/*.js && node --test"
   },
   "dsh": {
     "bundle": {
