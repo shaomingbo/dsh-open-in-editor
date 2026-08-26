@@ -105,6 +105,43 @@ test('uninstall removes only this dependency and bundle', async (t) => {
   assert.equal(result.restartRequired, true)
 })
 
+test('a no-op uninstall does not run pnpm or claim a restart is required', async (t) => {
+  const target = await fixture({
+    dependencies: { existing: '1.0.0' },
+    dsh: { profile: { bundles: ['existing'] } },
+  })
+  t.after(target.cleanup)
+  let installs = 0
+
+  const result = await updateProfile({
+    command: 'uninstall',
+    profileDirectory: target.profileDirectory,
+    source: DEFAULT_SOURCE,
+    installDependencies: async () => { installs += 1 },
+  })
+
+  assert.equal(result.changed, false)
+  assert.equal(result.restartRequired, false)
+  assert.equal(installs, 0)
+})
+
+test('a semantically unchanged CRLF manifest is not rewritten', async (t) => {
+  const target = await fixture()
+  t.after(target.cleanup)
+  const original = '{\r\n  "dependencies": {\r\n    "dsh-open-in-editor": "' + DEFAULT_SOURCE + '"\r\n  },\r\n  "dsh": {\r\n    "profile": {\r\n      "bundles": [\r\n        "dsh-open-in-editor"\r\n      ]\r\n    }\r\n  }\r\n}\r\n'
+  await writeFile(target.manifestPath, original)
+
+  const result = await updateProfile({
+    command: 'install',
+    profileDirectory: target.profileDirectory,
+    source: DEFAULT_SOURCE,
+    installDependencies: async () => {},
+  })
+
+  assert.equal(result.changed, false)
+  assert.equal(await readFile(target.manifestPath, 'utf8'), original)
+})
+
 test('failed dependency installation restores package.json', async (t) => {
   const original = {
     dependencies: { existing: '1.0.0' },

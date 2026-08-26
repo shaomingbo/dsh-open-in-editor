@@ -16,7 +16,7 @@ The first release supports macOS only. Ordinary inline file links keep DSH's nat
 Run the pinned GitHub release installer:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1
 ```
 
 The installer safely updates the `web` profile, enables the bundle, and runs `pnpm install --ignore-scripts`. It preserves a package-manifest backup and restores the original manifest if dependency installation fails. It never restarts DSH automatically.
@@ -26,8 +26,8 @@ After installation, restart DSH manually and hard-refresh the existing Web GUI.
 Use another profile or package source when needed:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 --profile web
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 --source link:/absolute/path/to/dsh-open-in-editor
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --profile web
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 --source link:/absolute/path/to/dsh-open-in-editor
 ```
 
 `DSH_OPEN_IN_EDITOR_SOURCE` provides the same source override for automation.
@@ -35,7 +35,7 @@ npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 --source link:/absolute/pa
 Check the configured state:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 status
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 status
 ```
 
 Manual profile editing remains a fallback: add the pinned source to `dependencies`, add `dsh-open-in-editor` to `dsh.profile.bundles`, then run `pnpm install --ignore-scripts` in the profile directory.
@@ -60,7 +60,7 @@ Tests cover application detection, path validation, safe argv construction, defa
 ## Uninstall
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.0 uninstall
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.2.1 uninstall
 ```
 
 Then restart DSH manually and hard-refresh the Web GUI.
