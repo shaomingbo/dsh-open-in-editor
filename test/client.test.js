@@ -6,7 +6,7 @@ import vm from 'node:vm'
 
 const clientPath = fileURLToPath(new URL('../lib/client.js', import.meta.url))
 
-async function loadFactory(reactOverride) {
+async function loadFactory(reactOverride, globals = {}) {
   const source = await readFile(clientPath, 'utf8')
   let registration
   vm.runInNewContext(source, {
@@ -17,6 +17,7 @@ async function loadFactory(reactOverride) {
         },
       },
     },
+    ...globals,
   })
   const React = reactOverride ?? {
     createElement() {},
@@ -138,11 +139,19 @@ test('the more control expands hidden produced files into openable split buttons
       if (!(index in state)) state[index] = initial
       return [state[index], (next) => { state[index] = typeof next === 'function' ? next(state[index]) : next }]
     },
-    useSyncExternalStore() {},
+    useSyncExternalStore(subscribe, getSnapshot) { return getSnapshot() },
   }
-  const { plugin } = await loadFactory(React)
+  const clipboardWrites = []
+  let clipboardFailure
+  const { plugin } = await loadFactory(React, {
+    navigator: { clipboard: { writeText: async (value) => {
+      if (clipboardFailure !== undefined) throw clipboardFailure
+      clipboardWrites.push(value)
+    } } },
+  })
   let producedFilesRenderer
   const calls = []
+  const notifications = []
   const ctx = {
     connection: { isLoopback: true, rpc: { call: async (...args) => {
       calls.push(args)
@@ -165,9 +174,13 @@ test('the more control expands hidden produced files into openable split buttons
     matched: paths,
     sessionId: 'session',
     useSessions: (select) => select({ byId: { session: { cwd: '/tmp' } } }),
-    inputActions: {},
+    inputActions: { notify: (...args) => notifications.push(args) },
     connection: ctx.connection,
-    catalog: { load: async () => {} },
+    catalog: {
+      load: async () => {},
+      subscribe: () => () => {},
+      getSnapshot: () => ({ status: 'ready', editors: [{ id: 'system', name: 'System', available: true }], supported: true, error: null }),
+    },
     t: (key, values) => key === 'more' ? `more ${values.count}` : key,
   }
   const walk = (node) => {
@@ -192,10 +205,55 @@ test('the more control expands hidden produced files into openable split buttons
   assert.equal(splitButtons.length, 8)
   assert.equal(expanded.find((node) => node.props?.className === 'dsh-open-in-editor-more').props['aria-expanded'], true)
 
-  await splitButtons[6].props.children[0].props.onClick()
+  let focusRestored = false
+  splitButtons[6].props.children[1].props.onClick({
+    currentTarget: {
+      focus: () => { focusRestored = true },
+      getBoundingClientRect: () => ({ right: 320, bottom: 48 }),
+    },
+  })
+  const withMenu = walk(render())
+  const menuElement = withMenu.find((node) => node.type?.name === 'OpenMenu')
+  const menuItems = walk(menuElement.type(menuElement.props)).filter((node) => node.props?.role === 'menuitem')
+  assert.equal(menuItems[0].props['data-action'], 'copy-path')
+  assert.equal(calls.filter(([, method]) => method === 'open').length, 0)
+
+  await menuItems[0].props.onClick()
+  assert.deepEqual(clipboardWrites, ['/tmp/file-7.md'])
+  assert.equal(calls.filter(([, method]) => method === 'open').length, 0)
+  assert.equal(notifications.at(-1)[0], 'success')
+  assert.equal(focusRestored, true)
+  assert.equal(walk(render()).some((node) => node.type?.name === 'OpenMenu'), false)
+
+  const afterCopy = walk(render()).filter((node) => node.props?.className === 'dsh-open-in-editor-split')
+  afterCopy[6].props.children[1].props.onClick({
+    currentTarget: { focus() {}, getBoundingClientRect: () => ({ right: 320, bottom: 48 }) },
+  })
+  const failedMenuElement = walk(render()).find((node) => node.type?.name === 'OpenMenu')
+  const failedCopy = walk(failedMenuElement.type(failedMenuElement.props)).find((node) => node.props?.['data-action'] === 'copy-path')
+  clipboardFailure = new Error('denied')
+  await failedCopy.props.onClick()
+  assert.equal(notifications.at(-1)[0], 'error')
+  assert.equal(walk(render()).some((node) => node.type?.name === 'OpenMenu'), true)
+
+  await afterCopy[6].props.children[0].props.onClick()
   assert.equal(calls.at(-1)[0], '/open-in-editor')
   assert.equal(calls.at(-1)[1], 'open')
   assert.equal(JSON.stringify(calls.at(-1)[2]), JSON.stringify({ path: '/tmp/file-7.md' }))
+})
+
+test('copyWorkspacePath resolves absolute paths and surfaces clipboard failures', async () => {
+  const { plugin } = await loadFactory()
+  const writes = []
+  const clipboard = { writeText: async (value) => { writes.push(value) } }
+
+  assert.equal(await plugin.copyWorkspacePath('/workspace', 'docs/report.md', clipboard), '/workspace/docs/report.md')
+  assert.equal(await plugin.copyWorkspacePath('/workspace', '/tmp/report.md', clipboard), '/tmp/report.md')
+  assert.deepEqual(writes, ['/workspace/docs/report.md', '/tmp/report.md'])
+  await assert.rejects(
+    plugin.copyWorkspacePath('/workspace', 'docs/report.md', { writeText: async () => { throw new Error('denied') } }),
+    /denied/,
+  )
 })
 
 test('produced-file controls use fixed-geometry SVG icons instead of font glyphs', async () => {
