@@ -17,6 +17,7 @@ test('registers a loopback RPC and rejects malformed or unknown requests', async
   let handler
   let channel
   let options
+  let section
   const ctx = {
     connection: { rpc: { handle(nextChannel, nextHandler, nextOptions) {
       channel = nextChannel
@@ -24,11 +25,21 @@ test('registers a loopback RPC and rejects malformed or unknown requests', async
       options = nextOptions
       return () => {}
     } } },
-    inject() {},
+    inject(names, callback) {
+      assert.deepEqual(names, ['settings'])
+      callback({ settings: { installSection(owner, ns, schema, entry, hooks) {
+        section = { owner, ns, schema, entry, hooks }
+      } } })
+    },
   }
   apply(ctx, {})
   assert.equal(channel, CHANNEL)
   assert.deepEqual(options, { authority: 'loopback' })
+  assert.equal(section.owner, ctx)
+  assert.equal(section.ns, 'open-in-editor')
+  assert.deepEqual(section.entry, { defaultEditor: 'system' })
+  assert.equal(typeof section.hooks.setSource, 'function')
+  section.hooks.onChange()
 
   const signal = new AbortController().signal
   const malformed = await handler('describe', { refresh: 'yes' }, signal)
@@ -37,4 +48,14 @@ test('registers a loopback RPC and rejects malformed or unknown requests', async
   const unknown = await handler('missing', {}, signal)
   assert.equal(unknown.ok, false)
   assert.match(unknown.error.message, /unknown open-in-editor endpoint/)
+})
+
+test('a missing settings service keeps the opener RPC alive without the settings section', () => {
+  let channel
+  const ctx = {
+    connection: { rpc: { handle(nextChannel) { channel = nextChannel; return () => {} } } },
+    inject() {},
+  }
+  apply(ctx, {})
+  assert.equal(channel, CHANNEL)
 })

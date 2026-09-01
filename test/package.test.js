@@ -25,6 +25,8 @@ test('package exposes a host/client DSH bundle with stable ids', async () => {
   assert.ok(pkg.dsh.client.inject.includes('@deepseek-ai/dsh-api-remotes'))
   assert.ok(pkg.dsh.client.inject.includes('@deepseek-ai/dsh-client-ui-deliverables'))
   assert.ok(pkg.dsh.client.inject.includes('@deepseek-ai/dsh-client-ui-settings'))
+  assert.ok(!pkg.dsh.client.inject.includes('@deepseek-ai/dsh-client-runtime'))
+  assert.equal(pkg.dependencies['@deepseek-ai/dsh-settings'], undefined)
 
   const patch = await text('cordis.patch.yml')
   assert.match(patch, /id: dsh-open-in-editor/)

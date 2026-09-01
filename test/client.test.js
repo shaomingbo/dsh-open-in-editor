@@ -29,9 +29,6 @@ async function loadFactory(reactOverride, globals = {}) {
   }
   const plugin = registration.factory((id) => {
     if (id === 'react') return React
-    if (id === '@deepseek-ai/dsh-client-runtime/client') {
-      return { resolveWorkspacePath: (cwd, path) => path.startsWith('/') ? path : `${cwd}/${path}` }
-    }
     throw new Error(`unexpected client require: ${id}`)
   })
   return { plugin, registration, source }
@@ -40,7 +37,7 @@ async function loadFactory(reactOverride, globals = {}) {
 test('uses the DSH client-module handoff and declares the required dependencies', async () => {
   const { plugin, registration } = await loadFactory()
   assert.equal(registration.id, 'dsh-open-in-editor')
-  assert.deepEqual(Array.from(plugin.inject), ['slots', 'locale', 'connection', 'remote', 'settingsScope'])
+  assert.deepEqual(Array.from(plugin.inject), ['slots', 'locale', 'connection', 'settingsScope'])
 })
 
 test('derives produced files through closing seq with stable first-seen deduplication', async () => {
@@ -221,7 +218,7 @@ test('the more control expands hidden produced files into openable split buttons
   await menuItems[0].props.onClick()
   assert.deepEqual(clipboardWrites, ['/tmp/file-7.md'])
   assert.equal(calls.filter(([, method]) => method === 'open').length, 0)
-  assert.equal(notifications.at(-1)[0], 'success')
+  assert.equal(notifications.at(-1)[0], 'info')
   assert.equal(focusRestored, true)
   assert.equal(walk(render()).some((node) => node.type?.name === 'OpenMenu'), false)
 
@@ -254,6 +251,18 @@ test('copyWorkspacePath resolves absolute paths and surfaces clipboard failures'
     plugin.copyWorkspacePath('/workspace', 'docs/report.md', { writeText: async () => { throw new Error('denied') } }),
     /denied/,
   )
+})
+
+test('the vendored resolver keeps workspace-path semantics without a runtime require', async () => {
+  const { plugin, source } = await loadFactory()
+  assert.doesNotMatch(source, /require\('@deepseek-ai\/dsh-client-runtime/)
+  assert.equal(plugin.resolveWorkspacePath('/workspace', 'docs/report.md'), '/workspace/docs/report.md')
+  assert.equal(plugin.resolveWorkspacePath('/workspace', '/tmp/report.md'), '/tmp/report.md')
+  assert.equal(plugin.resolveWorkspacePath('/workspace/', 'docs/report.md'), '/workspace/docs/report.md')
+  assert.equal(plugin.resolveWorkspacePath(undefined, 'docs/report.md'), 'docs/report.md')
+  assert.equal(plugin.resolveWorkspacePath('', 'docs/report.md'), 'docs/report.md')
+  assert.equal(plugin.resolveWorkspacePath('/workspace', 'C:\\tmp\\report.md'), 'C:\\tmp\\report.md')
+  assert.equal(plugin.resolveWorkspacePath('/workspace', '\\\\server\\share\\a.md'), '\\\\server\\share\\a.md')
 })
 
 test('produced-file controls use fixed-geometry SVG icons instead of font glyphs', async () => {
