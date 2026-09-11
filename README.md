@@ -19,7 +19,7 @@ Requires DeepSeek Harness v0.1.2-alpha.2 or newer.
 Run the pinned GitHub release installer:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.1
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.2
 ```
 
 The installer safely updates the `web` profile, enables the bundle, and runs `pnpm install --ignore-scripts`. It preserves a package-manifest backup and restores the original manifest if dependency installation fails. It never restarts DSH automatically.
@@ -29,8 +29,8 @@ After installation, restart DSH manually and hard-refresh the existing Web GUI.
 Use another profile or package source when needed:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.1 --profile web
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.1 --source link:/absolute/path/to/dsh-open-in-editor
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.2 --profile web
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.2 --source link:/absolute/path/to/dsh-open-in-editor
 ```
 
 `DSH_OPEN_IN_EDITOR_SOURCE` provides the same source override for automation.
@@ -38,7 +38,7 @@ npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.1 --source link:/absolute/pa
 Check the configured state:
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.1 status
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.2 status
 ```
 
 Manual profile editing remains a fallback: add the pinned source to `dependencies`, add `dsh-open-in-editor` to `dsh.profile.bundles`, then run `pnpm install --ignore-scripts` in the profile directory.
@@ -64,7 +64,7 @@ Tests cover application detection, path validation, safe argv construction, abso
 ## Uninstall
 
 ```sh
-npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.1 uninstall
+npx --yes github:shaomingbo/dsh-open-in-editor#v0.3.2 uninstall
 ```
 
 Then restart DSH manually and hard-refresh the Web GUI.
